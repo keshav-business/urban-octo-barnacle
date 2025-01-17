@@ -93,6 +93,24 @@ async def receive_text(text_data: ReceiveText):
 async def message_stream():
     return EventSourceResponse(event_generator())
 
+
+@app.post("/get_text")
+async def get_text():
+    """Get the current text to be spoken by the avatar"""
+    if text_state.current_text:
+        text_to_send = text_state.current_text
+        text_state.clear_text()  # Clear immediately after getting it
+        return {
+            "text": text_to_send,
+            "status": "new",
+            "timestamp": text_state.last_updated.isoformat()
+        }
+    
+    raise HTTPException(
+        status_code=204,  # No Content
+        detail="No new text available"
+    )
+
 @app.post("/api/tts")
 async def text_to_speech(request: TTSRequest):
     try:
